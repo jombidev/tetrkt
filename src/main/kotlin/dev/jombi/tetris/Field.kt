@@ -12,9 +12,9 @@ class Field {
     private val field = BlockCollection(blockX, blockY)
 
     fun drawField(width: Int, height: Int) {
-        val x = 15f
+        val x = 85f
         val y = 15f
-        val cWidth = width - 130f
+        val cWidth = width - 170f
         val cHeight = height - 30f
         Drawer.drawRect(x, y, cWidth, cHeight, 0xff202020.toInt())
         Drawer.drawOutLine(x, y, cWidth, cHeight, 0xffffffff.toInt())
@@ -27,11 +27,12 @@ class Field {
             0xff424242.toInt()
         )
         val sHeight = cHeight / blockY
+//        println("$sWidth $sHeight")
         for (i in 1 until blockY) Drawer.drawLine(
             x + 1f,
             y + i * sHeight,
-            x + cWidth,
-            y + i * sHeight - 1f,
+            x + cWidth - 1f,
+            y + i * sHeight,
             0xff424242.toInt()
         )
 
@@ -51,10 +52,60 @@ class Field {
                 Drawer.drawRect(bX + 1f, bY + 1f, sWidth - 2f, sHeight - 2f, block.color.colorCode)
             }
         }
+    }
 
+    fun drawHoldUI() {
+        val x = 15f
+        val y = 15f
+
+        val cWidth = 50f
+        val cHeight = 50f
+
+        Drawer.drawRect(x, y, cWidth, cHeight, 0xff202020.toInt())
+        Drawer.drawOutLine(x, y, cWidth, cHeight, 0xffffffff.toInt())
+
+        val sWidth = cWidth / 4
+        for (i in 1 until 4) Drawer.drawLine(
+            x + i * sWidth,
+            y + 1f,
+            x + i * sWidth,
+            y + cHeight - 1f,
+            0xff424242.toInt()
+        )
+        val sHeight = cHeight / 4
+//        println("$sWidth $sHeight")
+        for (i in 1 until 4) Drawer.drawLine(
+            x + 1f,
+            y + i * sHeight,
+            x + cWidth - 1f,
+            y + i * sHeight,
+            0xff424242.toInt()
+        )
+
+        val mino = holdingMino ?: return
+        val blocksArray = mino.blocks[0].flatten()
+        for (block in blocksArray) {
+            if (block == null) continue
+            val bX = x + block.x * sWidth
+            val bY = y + block.y * sHeight
+            Drawer.drawRect(bX + 1f, bY + 1f, sWidth - 2f, sHeight - 2f, block.color.colorCode)
+        }
+    }
+
+    var canHold = false
+
+    fun holdMino() {
+        if (!canHold) return
+        canHold = false
+        if (holdingMino == null) holdingMino = fetchNewMino()
+        val temp = holdingMino
+        holdingMino = currentMino
+        currentMino = temp
+        resetPosition()
     }
 
     private val minos: ArrayList<Tetrimino> = arrayListOf()
+    var holdingMino: Tetrimino? = null
     var currentMino: Tetrimino? = null
     var minoPosY = 0
         set(value) {
@@ -145,6 +196,13 @@ class Field {
 
     var lastMoving = 0
 
+
+    fun hardDrop() {
+        while (!checkFloor(currentMino ?: return, minoSpin, minoPosY + 1)) down()
+        lastMoving = 21
+        placeMino()
+    }
+
     fun placeMino() {
         if (currentMino != null)
             if (lastMoving > 20 && checkFloor(currentMino!!, minoSpin, minoPosY + 1)) {
@@ -160,19 +218,28 @@ class Field {
         minoPosY++
     }
 
+    fun resetPosition() {
+        minoPosY = -1
+        minoPosX = blockX / 2 - 2
+        minoSpin = -999
+    }
+
     fun updateMino() {
         placeMino()
         if (currentMino == null) {
-            if (minos.isEmpty()) reset()
-            val min = minos.random()
-            minos.remove(min)
-            currentMino = min
-            minoPosY = -2
-            minoPosX = blockX / 2 - 2
-            minoSpin = -999
+            currentMino = fetchNewMino()
+            resetPosition()
+            canHold = true
             return
         }
         if (lastMoving > 20) down()
+    }
+
+    private fun fetchNewMino(): Tetrimino {
+        if (minos.isEmpty()) reset()
+        val min = minos.random()
+        minos.remove(min)
+        return min
     }
 
     fun checkFloor(mino: Tetrimino, rotate: Int, targetY: Int): Boolean {

@@ -14,7 +14,7 @@ class GLTetrisGame(val timer: Timer) {
     private val keyTimer = Timer(40.0f, 0)
     private var window by Delegates.notNull<Long>()
     private val field = Field()
-    val WIDTH = 360
+    val WIDTH = 400
     val HEIGHT = 490
     fun init() {
         GLFWErrorCallback.createPrint(System.err).set()
@@ -59,6 +59,7 @@ class GLTetrisGame(val timer: Timer) {
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
             field.drawField(WIDTH, HEIGHT)
+            field.drawHoldUI()
 
             glfwSwapBuffers(window)
         }
@@ -96,8 +97,16 @@ class GLTetrisGame(val timer: Timer) {
 
                     }
 
+                    GLFW_KEY_SPACE -> {
+                        field.holdMino()
+                    }
+
                     GLFW_KEY_DOWN -> {
                         field.down()
+                    }
+
+                    GLFW_KEY_UP -> {
+                        field.hardDrop()
                     }
                 }
             }
