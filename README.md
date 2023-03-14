@@ -3,8 +3,8 @@ simple tetris made with kotlin and opengl
 
 # todo list
 - [ ] 180° rotation
-- [ ] Game over screen
-- [ ] Main game screen
+- [x] Game over screen
+- [x] Main game screen
 - [x] Hold block
 - [x] Hard drop
 - [x] Smart Rotation (fandom wiki da best)
