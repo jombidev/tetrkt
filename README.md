@@ -1,13 +1,5 @@
 # tetrkt
 simple tetris made with kotlin and opengl
 
-# todo list
-- [x] 180° rotation
-- [x] Game over screen
-- [x] Main game screen
-- [x] Hold block
-- [x] Hard drop
-- [x] Smart Rotation (fandom wiki da best)
-- [x] Remove filled lines
-- [x] Improve Repeat quality
-- [x] Fix clip glitch
+# Download
+[Download](https://github.com/J0mbi/tetrkt/releases/latest)
