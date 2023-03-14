@@ -128,12 +128,15 @@ class GLTetrisGame {
                     }
 
                     GLFW_KEY_Z -> {
-                        f.minoSpin = (f.minoSpin - 1).clampRev(0, 3)
+                        f.minoSpin(SpinType.BACKWARD)
+                    }
+
+                    GLFW_KEY_X -> {
+                        f.minoSpin(SpinType.DOUBLEWARD)
                     }
 
                     GLFW_KEY_C -> {
-                        f.minoSpin = (f.minoSpin + 1).clampRev(0, 3)
-
+                        f.minoSpin(SpinType.FORWARD)
                     }
 
                     GLFW_KEY_SPACE -> {
@@ -165,8 +168,6 @@ class GLTetrisGame {
             }
         }
     }
-
-    fun Int.clampRev(min: Int, max: Int) = if (min > this) max else if (max < this) min else this
 
     fun clear() {
         glfwFreeCallbacks(window)

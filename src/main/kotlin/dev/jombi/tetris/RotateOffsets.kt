@@ -25,7 +25,7 @@ object RotateOffsets {
         arrayOf(arrayOf(0, 0), arrayOf(-2, 0), arrayOf(1, 0), arrayOf(-2, -1), arrayOf(1, 2)),
         arrayOf(arrayOf(0, 0), arrayOf(-1, 0), arrayOf(2, 0), arrayOf(-1, 2), arrayOf(2, -1))
     )
-    private val WALLKICK_NORMAL_180 = arrayOf(
+    val WALLKICK_NORMAL_180 = arrayOf(
         arrayOf(
             arrayOf(1, 0),
             arrayOf(2, 0),
@@ -76,7 +76,7 @@ object RotateOffsets {
             arrayOf(0, -3)
         )
     )
-    private val WALLKICK_I_180 = arrayOf(
+    val WALLKICK_I_180 = arrayOf(
         arrayOf(arrayOf(-1, 0), arrayOf(-2, 0), arrayOf(1, 0), arrayOf(2, 0), arrayOf(0, 1)),
         arrayOf(arrayOf(0, 1), arrayOf(0, 2), arrayOf(0, -1), arrayOf(0, -2), arrayOf(-1, 0)),
         arrayOf(arrayOf(1, 0), arrayOf(2, 0), arrayOf(-1, 0), arrayOf(-2, 0), arrayOf(0, -1)),

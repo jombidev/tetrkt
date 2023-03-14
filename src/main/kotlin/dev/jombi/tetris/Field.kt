@@ -123,16 +123,21 @@ class Field {
             }
         }
 
-    var minoSpin = 0
-        set(value) {
-            if (value == -999) {
-                field = 0
-                return
-            }
-            if (checkFreeSpace(currentMino ?: return, field, value)) {
-                field = value
+    fun minoSpin(type: SpinType) {
+        when (type) {
+            SpinType.RESET -> minoSpin = 0
+            SpinType.FORWARD -> if (checkFreeSpace(currentMino ?: return, minoSpin, (minoSpin + 1).clampRev(0, 3))) minoSpin = (minoSpin + 1).clampRev(0, 3)
+            SpinType.BACKWARD -> if (checkFreeSpace(currentMino ?: return, minoSpin, (minoSpin - 1).clampRev(0, 3))) minoSpin = (minoSpin - 1).clampRev(0, 3)
+            SpinType.DOUBLEWARD -> if (check180WiseSpace(currentMino ?: return, minoSpin, 2)) {
+                minoSpin += 2
+                if (minoSpin > 3) minoSpin -= 4
             }
         }
+    }
+
+    fun Int.clampRev(min: Int, max: Int) = if (min > this) max else if (max < this) min else this
+
+    var minoSpin = 0
 
     fun downLine() {
         val a = Array(blockY) { arrayOfNulls<BlockColor>(blockX) }
@@ -171,6 +176,23 @@ class Field {
         val notNullMap = field.filterNotNull().map { it.x to it.y }
         if (flatten.filterNotNull().map { targetX + it.x to targetY + it.y }
                 .any { notNullMap.contains(it) }) return true
+        return false
+    }
+
+    fun check180WiseSpace(mino: Tetrimino, targetIndex: Int, incrementation: Int): Boolean {
+        var rotate = targetIndex + incrementation
+        if (rotate > 3) rotate -= 4
+        val flatten = mino.blocks[rotate].flatten()
+        val isIMino = mino is IMino
+        val array = if (isIMino) RotateOffsets.WALLKICK_I_180[targetIndex] else RotateOffsets.WALLKICK_NORMAL_180[targetIndex]
+        for (index in array.indices) {
+            val (x, y) = array[index]
+            if (!fieldCheck(flatten, minoPosX + x, minoPosY + y) && !isSide(mino, rotate, minoPosX + x)) {
+                minoPosX += x
+                minoPosY += y
+                return true
+            }
+        }
         return false
     }
 
@@ -228,7 +250,7 @@ class Field {
     fun resetPosition() {
         minoPosY = -2
         minoPosX = blockX / 2 - 2
-        minoSpin = -999
+        minoSpin(SpinType.RESET)
     }
 
     fun updateMino() {
