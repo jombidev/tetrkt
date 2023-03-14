@@ -1,6 +1,9 @@
 package dev.jombi.tetris
 
-import dev.jombi.tetris.key.Key
+import dev.jombi.tetris.input.Key
+import dev.jombi.tetris.input.Mouse
+import dev.jombi.tetris.screen.GuiScreen
+import dev.jombi.tetris.screen.impl.GuiMainMenu
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
@@ -9,13 +12,41 @@ import org.lwjgl.opengl.GL11.*
 import org.lwjgl.system.MemoryUtil.NULL
 import kotlin.properties.Delegates
 
+class GLTetrisGame {
+    companion object {
+        private val instance = GLTetrisGame()
+        fun instance() = instance
+    }
 
-class GLTetrisGame(val timer: Timer) {
+    private val gameTimer = Timer(20.0f, 0L)
     private val keyTimer = Timer(40.0f, 0)
     private var window by Delegates.notNull<Long>()
-    private val field = Field()
+    private var field: Field? = null
     val WIDTH = 400
     val HEIGHT = 490
+
+    private var currentScreen: GuiScreen? = null
+    private val mouseHelper = Mouse()
+    fun displayScreen(s: GuiScreen?) {
+        currentScreen = s
+        currentScreen?.initGui()
+    }
+    fun exitGame() {
+        glfwSetWindowShouldClose(window, true)
+    }
+    fun initGame() {
+        field = Field()
+        field!!.updateMino()
+    }
+    private fun updateGame() {
+        if (field == null) return
+        field!!.drawField(WIDTH, HEIGHT)
+        field!!.drawHoldUI()
+    }
+    fun finalizeGame() {
+        field = null
+    }
+
     fun init() {
         GLFWErrorCallback.createPrint(System.err).set()
         if (!glfwInit()) throw IllegalStateException("Failed to initialize GLFW")
@@ -30,19 +61,20 @@ class GLTetrisGame(val timer: Timer) {
         glfwShowWindow(window)
     }
 
-    val keys = arrayListOf<Key>()
+    private val keys = arrayListOf<Key>()
 
     fun loop() {
         GL.createCapabilities()
+
         glClearColor(.2f, .2f, .2f, 1f)
 
         inputReadingThread()
-        field.updateMino()
+        displayScreen(GuiMainMenu.getInstance())
 
         while (!glfwWindowShouldClose(window)) {
             glfwPollEvents()
 
-            val e = timer.advanceTime(getSystemTime())
+            val e = gameTimer.advanceTime(getSystemTime())
             val f = keyTimer.advanceTime(getSystemTime())
 
             for (i in 0 until minOf(10, e))
@@ -58,8 +90,12 @@ class GLTetrisGame(val timer: Timer) {
             glLoadIdentity()
             glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
-            field.drawField(WIDTH, HEIGHT)
-            field.drawHoldUI()
+            mouseHelper.updateMouse(window)
+
+            if (currentScreen != null) {
+                currentScreen!!.drawScreen(mouseHelper.mouseX(), mouseHelper.mouseY())
+            }
+            updateGame()
 
             glfwSwapBuffers(window)
         }
@@ -68,45 +104,48 @@ class GLTetrisGame(val timer: Timer) {
     var ticksExisted = 0
     fun runTick() {
         ticksExisted++
-        field.lastMoving++
-        field.updateMino()
-        field.downLine()
+        val f = field ?: return
+        f.lastMoving++
+        f.updateMino()
+        f.downLine()
     }
 
     fun consumeKeys() {
         for (k in keys) {
+            currentScreen?.keyTyped(k)
             val (key, ms) = k
             val delay = getSystemTime() - ms
             if (k.isFirst || delay > 150L) {
+                val f = field ?: return
                 k.isFirst = false
                 when (key) {
                     GLFW_KEY_LEFT -> {
-                        field.minoPosX--
+                        f.minoPosX--
                     }
 
                     GLFW_KEY_RIGHT -> {
-                        field.minoPosX++
+                        f.minoPosX++
                     }
 
                     GLFW_KEY_Z -> {
-                        field.minoSpin = (field.minoSpin - 1).clampRev(0, 3)
+                        f.minoSpin = (f.minoSpin - 1).clampRev(0, 3)
                     }
 
                     GLFW_KEY_C -> {
-                        field.minoSpin = (field.minoSpin + 1).clampRev(0, 3)
+                        f.minoSpin = (f.minoSpin + 1).clampRev(0, 3)
 
                     }
 
                     GLFW_KEY_SPACE -> {
-                        field.holdMino()
+                        f.holdMino()
                     }
 
                     GLFW_KEY_DOWN -> {
-                        field.down()
+                        f.down()
                     }
 
                     GLFW_KEY_UP -> {
-                        field.hardDrop()
+                        f.hardDrop()
                     }
                 }
             }
@@ -116,6 +155,14 @@ class GLTetrisGame(val timer: Timer) {
     fun inputReadingThread() {
         glfwSetKeyCallback(window) { window, key, scancode, action, mods ->
             if (action == 1) keys.add(Key(key, getSystemTime())) else if (action == 0) keys.removeIf { it.key == key }
+        }
+
+        glfwSetMouseButtonCallback(window) { _, button, action, mods ->
+            if (action == 1) {
+                currentScreen?.mouseClicked(button, mouseHelper.mouseX(), mouseHelper.mouseY())
+            } else if (action == 0) {
+                currentScreen?.mouseReleased(button, mouseHelper.mouseX(), mouseHelper.mouseY())
+            }
         }
     }
 

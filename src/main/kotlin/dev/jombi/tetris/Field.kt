@@ -3,6 +3,7 @@ package dev.jombi.tetris
 import dev.jombi.tetris.block.Block
 import dev.jombi.tetris.block.BlockCollection
 import dev.jombi.tetris.block.BlockColor
+import dev.jombi.tetris.screen.impl.GuiGameOver
 import dev.jombi.tetris.tetrimino.Tetrimino
 import dev.jombi.tetris.tetrimino.impl.*
 
@@ -181,9 +182,9 @@ class Field {
             val primaryRot = rotDiff == 1 || rotDiff < -1
             val backwardRot = rotDiff == -1 || rotDiff > 1
             val (x, y) = if (primaryRot) {
-                if (isIMino) RotateOffsets.spinTestINormal[currentRotate][index] else RotateOffsets.spinTestNormal[currentRotate][index]
+                if (isIMino) RotateOffsets.WALLKICK_I_NORMAL[currentRotate][index] else RotateOffsets.WALLKICK_NORMAL[currentRotate][index]
             } else if (backwardRot) {
-                if (isIMino) RotateOffsets.spinTestIReversed[targetRotate][index] else RotateOffsets.spinTestReversed[targetRotate][index]
+                if (isIMino) RotateOffsets.WALLKICK_I_REVERSED[targetRotate][index] else RotateOffsets.WALLKICK_REVERSED[targetRotate][index]
             } else return true
             if (!fieldCheck(flatten, minoPosX + x, minoPosY + y) && !isSide(mino, targetRotate, minoPosX + x)) {
                 minoPosX += x
@@ -205,12 +206,18 @@ class Field {
 
     fun placeMino() {
         if (currentMino != null)
-            if (lastMoving > 20 && checkFloor(currentMino!!, minoSpin, minoPosY + 1)) {
-                for (blocks in currentMino!!.blocks[minoSpin]) for (block in blocks) {
-                    if (block == null) continue
-                    field.place(minoPosX + block.x, minoPosY + block.y, block.color)
+            try {
+                if (lastMoving > 20 && checkFloor(currentMino!!, minoSpin, minoPosY + 1)) {
+                    for (blocks in currentMino!!.blocks[minoSpin]) for (block in blocks) {
+                        if (block == null) continue
+                        field.place(minoPosX + block.x, minoPosY + block.y, block.color)
+                    }
+                    currentMino = null
                 }
-                currentMino = null
+            } catch (e: ArrayIndexOutOfBoundsException) {
+                GLTetrisGame.instance().displayScreen(GuiGameOver())
+                GLTetrisGame.instance().finalizeGame()
+                System.gc()
             }
     }
 
@@ -219,7 +226,7 @@ class Field {
     }
 
     fun resetPosition() {
-        minoPosY = -1
+        minoPosY = -2
         minoPosX = blockX / 2 - 2
         minoSpin = -999
     }
