@@ -17,14 +17,14 @@ class GuiMainMenu private constructor() : GuiScreen() {
         fun getInstance() = instance
     }
     override fun initGui() {
-        val halfWidth = GLTetrisGame.instance().WIDTH / 2.0
-        val halfHeight = GLTetrisGame.instance().HEIGHT / 2.0
+        val halfWidth = GLTetrisGame.getInstance().WIDTH / 2.0
+        val halfHeight = GLTetrisGame.getInstance().HEIGHT / 2.0
         buttons.add(Button("Start", halfWidth, halfHeight) {
-            GLTetrisGame.instance().initGame()
-            GLTetrisGame.instance().displayScreen(null)
+            GLTetrisGame.getInstance().initGame()
+            GLTetrisGame.getInstance().displayScreen(null)
         })
         buttons.add(Button("Exit", halfWidth, halfHeight + 40.0) {
-            GLTetrisGame.instance().exitGame()
+            GLTetrisGame.getInstance().exitGame()
         })
     }
 
@@ -34,7 +34,7 @@ class GuiMainMenu private constructor() : GuiScreen() {
 
     override fun drawScreen(mouseX: Double, mouseY: Double) {
         super.drawScreen(mouseX, mouseY)
-        val halfWidth = GLTetrisGame.instance().WIDTH / 2.0
+        val halfWidth = GLTetrisGame.getInstance().WIDTH / 2.0
         val TARGET_FONT = FontFactory.getFont(FontType.ARIAL, 48)
         val (fWidth, fHeight) = TARGET_FONT.getStringBound("TetrKt")
 

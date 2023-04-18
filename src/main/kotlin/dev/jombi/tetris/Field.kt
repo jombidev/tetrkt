@@ -110,6 +110,7 @@ class Field {
     var currentMino: Tetrimino? = null
     var minoPosY = 0
         set(value) {
+            if (currentMino == null) return
             if (field == value) return
             if (value in -2 until blockY && !checkFloor(currentMino!!, minoSpin, value)) {
                 field = value
@@ -237,8 +238,8 @@ class Field {
                     currentMino = null
                 }
             } catch (e: ArrayIndexOutOfBoundsException) {
-                GLTetrisGame.instance().displayScreen(GuiGameOver())
-                GLTetrisGame.instance().finalizeGame()
+                GLTetrisGame.getInstance().displayScreen(GuiGameOver())
+                GLTetrisGame.getInstance().finalizeGame()
                 System.gc()
             }
     }

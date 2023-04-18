@@ -10,17 +10,17 @@ import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 import org.lwjgl.system.MemoryUtil.NULL
-import kotlin.properties.Delegates
 
 class GLTetrisGame {
     companion object {
         private val instance = GLTetrisGame()
-        fun instance() = instance
+        @JvmStatic
+        fun getInstance() = instance
     }
 
     private val gameTimer = Timer(20.0f, 0L)
     private val keyTimer = Timer(40.0f, 0)
-    private var window by Delegates.notNull<Long>()
+    private var window  = 0L
     private var field: Field? = null
     val WIDTH = 400
     val HEIGHT = 490
@@ -170,9 +170,10 @@ class GLTetrisGame {
     }
 
     fun clear() {
-        glfwFreeCallbacks(window)
-        glfwDestroyWindow(window)
-
+        if (window != 0L) {
+            glfwFreeCallbacks(window)
+            glfwDestroyWindow(window)
+        }
         glfwTerminate()
         glfwSetErrorCallback(null)?.free()
     }
