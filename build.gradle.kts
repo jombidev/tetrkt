@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "dev.jombi"
-version = "1.0-DEV"
+version = "1.1-DEV"
 val lwjglVersion = "3.3.1"
 val natives = arrayOf("natives-windows", "natives-macos-arm64")
 
